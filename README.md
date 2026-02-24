@@ -22,7 +22,7 @@ python3 -m streamlit run main.py
 ### Option 1: `uv` (locked, reproducible)
 # If cmd prompt starts with (l09hw-cannonball), then venv is already activated so you can skip source command
 ```bash
-cd /workspaces/cop2080-main-private/L09HW_Cannonball
+cd L09HW_Cannonball
 source .venv/bin/activate
 uv sync
 uv run streamlit run main.py
