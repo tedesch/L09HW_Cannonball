@@ -5,18 +5,37 @@ import pandas as pd
 import streamlit as st
 import random
 
+class Print_Iface:
+    def plot_trajectory(self, xs, ys):
+        if not xs:
+            st.warning("No trajectory points were generated.")
+            return
 
+        df = pd.DataFrame({"x": xs, "y": ys})
+
+        chart = (
+            alt.Chart(df)
+            .mark_line()
+            .encode(
+                x=alt.X("x:Q", title="Distance (m)"),
+                y=alt.Y("y:Q", title="Height (m)")
+            )
+            .properties(width=700, height=400)
+        )
+
+        st.altair_chart(chart, use_container_width=True)
 ## Represent a cannonball, tracking its position and velocity.
 #
 class Cannonball:
     ## Create a new cannonball at the provided x position.
     #  @param x the x position of the ball
-    #
+
     def __init__(self, x):
         self._x = x
         self._y = 0
         self._vx = 0
         self._vy = 0
+        self.printer = Print_Iface()
 
     ## Move the cannon ball, using its current velocities.
     #  @param sec the amount of time that has elapsed.
@@ -60,6 +79,16 @@ class Cannonball:
             self.move(step, user_grav)
 
         return xs, ys
+    
+class Crazyball(Cannonball):
+
+        def move(self, sec, grav):
+            super().move(sec, grav)
+
+            if self.getX() < 400 and self.getY() > 0:
+                if random.randrange(0, 10) >= 6:
+                    self._x += random.uniform(-2, 2)
+                    self._y += random.uniform(-2, 2)
 
 def run_app():
     st.title("Cannonball Trajectory")
@@ -69,7 +98,7 @@ def run_app():
     )
     velocity = st.selectbox("Initial velocity", options=[15, 25, 40], index=1)
 
-    gravity_options = {"Earth": 9.81}
+    gravity_options = {"Earth": 9.81, "Moon": 1.62, "Crazy": 9.81}
     gravity_name = st.selectbox("Gravity", options=list(gravity_options.keys()), index=0)
     gravity = gravity_options[gravity_name]
     step = .1
@@ -81,24 +110,8 @@ def run_app():
         angle_rad = radians(angle_deg)
         ball = Cannonball(0)
         xs, ys = ball.shoot(angle_rad, velocity, gravity, step)
-
-        if not xs:
-            st.warning("No trajectory points were generated.")
-            return
-
-        df = pd.DataFrame({"x": xs, "y": ys})
-
-        chart = (
-            alt.Chart(df)
-            .mark_line()
-            .encode(
-                x=alt.X("x:Q", scale=alt.Scale(domain=[0, 200]), title="Distance (m)"),
-                y=alt.Y("y:Q", scale=alt.Scale(domain=[0, 100]), title="Height (m)")
-            )
-            .properties(width=700, height=400)
-        )
-        st.altair_chart(chart, use_container_width=True)
-
+        
+        ball.printer.plot_trajectory(xs, ys)
 
 if __name__ == "__main__":
     run_app()
